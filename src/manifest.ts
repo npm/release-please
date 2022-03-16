@@ -497,6 +497,7 @@ export class Manifest {
         break;
       }
       commits.push({
+        authors: commit.authors,
         sha: commit.sha,
         message: commit.message,
         files: commit.files,

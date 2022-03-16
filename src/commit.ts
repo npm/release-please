@@ -30,6 +30,13 @@ export interface Commit {
   message: string;
   files?: string[];
   pullRequest?: PullRequest;
+  authors?: CommitAuthor[];
+}
+
+export interface CommitAuthor {
+  username?: string;
+  name: string;
+  email: string;
 }
 
 export interface ConventionalCommit extends Commit {
@@ -354,6 +361,7 @@ export function parseConventionalCommits(
           parsedCommit.notes.filter(note => note.title === 'BREAKING CHANGE')
             .length > 0;
         conventionalCommits.push({
+          authors: commit.authors,
           sha: commit.sha,
           message: parsedCommit.header,
           files: commit.files,

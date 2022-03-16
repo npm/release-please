@@ -74,9 +74,20 @@ type CommitFilter = (commit: Commit) => boolean;
 interface GraphQLCommit {
   sha: string;
   message: string;
+  authors: {
+    nodes: GraphQLAuthor[];
+  };
   associatedPullRequests: {
     nodes: GraphQLPullRequest[];
   };
+}
+
+interface GraphQLAuthor {
+  user: {
+    login: string;
+  };
+  name: string;
+  email: string;
 }
 
 interface GraphQLPullRequest {
@@ -351,6 +362,15 @@ export class GitHub {
               ... on Commit {
                 history(first: $num, after: $cursor) {
                   nodes {
+                    authors (first: 10) {
+                      nodes {
+                        user {
+                          login
+                        }
+                        name
+                        email
+                      }
+                    }
                     associatedPullRequests(first: 10) {
                       nodes {
                         number
@@ -412,6 +432,13 @@ export class GitHub {
       const commit: Commit = {
         sha: graphCommit.sha,
         message: graphCommit.message,
+        authors: graphCommit.authors.nodes.map((author) => {
+          return {
+            name: author.name,
+            username: author.user && author.user.login,
+            email: author.email,
+          }
+        }),
       };
       const pullRequest = graphCommit.associatedPullRequests.nodes.find(pr => {
         return pr.mergeCommit && pr.mergeCommit.oid === graphCommit.sha;
