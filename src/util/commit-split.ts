@@ -39,6 +39,8 @@ export interface CommitSplitOptions {
   // NOTE: GitHub API always returns paths using the `/` separator, regardless
   // of what platform the client code is running on
   packagePaths?: string[];
+  // Whether to exclude all other packages' commits from the root package
+  excludePackagesFromRoot?: boolean;
 }
 
 /**
@@ -50,6 +52,7 @@ export interface CommitSplitOptions {
 export class CommitSplit {
   includeEmpty: boolean;
   packagePaths?: string[];
+  rootPath?: string;
   constructor(opts?: CommitSplitOptions) {
     opts = opts || {};
     this.includeEmpty = !!opts.includeEmpty;
@@ -57,8 +60,11 @@ export class CommitSplit {
       const paths: string[] = [];
       for (let newPath of opts.packagePaths) {
         // The special "." path, representing the root of the module, should be
-        // ignored by commit-split as it is assigned all commits in manifest.ts
+        // ignored by commit-split unless excludePackagesFromRoot is set
         if (newPath === ROOT_PROJECT_PATH) {
+          if (opts.excludePackagesFromRoot) {
+            this.rootPath = ROOT_PROJECT_PATH;
+          }
           continue;
         }
         // normalize so that all paths have leading and trailing slashes for
@@ -112,12 +118,15 @@ export class CommitSplit {
         const splitPath = file.split('/');
         // indicates that we have a top-level file and not a folder
         // in this edge-case we should not attempt to update the path.
-        if (splitPath.length === 1) continue;
+        if (splitPath.length === 1 && !this.rootPath) continue;
 
         let pkgName;
         if (this.packagePaths) {
           // only track paths under this.packagePaths
           pkgName = this.packagePaths.find(p => file.indexOf(`${p}/`) === 0);
+          if (!pkgName && this.rootPath) {
+            pkgName = this.rootPath;
+          }
         } else {
           // track paths by top level folder
           pkgName = splitPath[0];

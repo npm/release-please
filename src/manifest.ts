@@ -170,6 +170,7 @@ export interface ManifestOptions {
   releaseSearchDepth?: number;
   commitSearchDepth?: number;
   logger?: Logger;
+  excludePackagesFromRoot?: boolean;
 }
 
 export interface ReleaserPackageConfig extends ReleaserConfigJson {
@@ -210,6 +211,7 @@ export interface ManifestConfig extends ReleaserConfigJson {
   'release-search-depth'?: number;
   'commit-search-depth'?: number;
   'sequential-calls'?: boolean;
+  'exclude-packages-from-root'?: boolean;
 }
 // path => version
 export type ReleasedVersions = Record<string, Version>;
@@ -264,6 +266,7 @@ export class Manifest {
   readonly releaseSearchDepth: number;
   readonly commitSearchDepth: number;
   readonly logger: Logger;
+  private excludePackagesFromRoot?: boolean;
 
   /**
    * Create a Manifest from explicit config in code. This assumes that the
@@ -328,6 +331,8 @@ export class Manifest {
     this.commitSearchDepth =
       manifestOptions?.commitSearchDepth || DEFAULT_COMMIT_SEARCH_DEPTH;
     this.logger = manifestOptions?.logger ?? defaultLogger;
+    this.excludePackagesFromRoot =
+      manifestOptions?.excludePackagesFromRoot ?? false;
   }
 
   /**
@@ -590,6 +595,7 @@ export class Manifest {
     const cs = new CommitSplit({
       includeEmpty: true,
       packagePaths: Object.keys(this.repositoryConfig),
+      excludePackagesFromRoot: this.excludePackagesFromRoot,
     });
     const splitCommits = cs.split(commits);
 
@@ -597,7 +603,9 @@ export class Manifest {
     const commitsPerPath: Record<string, Commit[]> = {};
     for (const path in this.repositoryConfig) {
       commitsPerPath[path] = commitsAfterSha(
-        path === ROOT_PROJECT_PATH ? commits : splitCommits[path],
+        !this.excludePackagesFromRoot && path === ROOT_PROJECT_PATH
+          ? commits
+          : splitCommits[path],
         releaseShasByPath[path]
       );
     }
@@ -1252,6 +1260,7 @@ async function parseConfig(
     releaseSearchDepth: config['release-search-depth'],
     commitSearchDepth: config['commit-search-depth'],
     sequentialCalls: config['sequential-calls'],
+    excludePackagesFromRoot: config['exclude-packages-from-root'],
   };
   return {config: repositoryConfig, options: manifestOptions};
 }
