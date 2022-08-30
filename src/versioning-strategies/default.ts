@@ -27,6 +27,7 @@ import {logger as defaultLogger, Logger} from '../util/logger';
 interface DefaultVersioningStrategyOptions {
   bumpMinorPreMajor?: boolean;
   bumpPatchForMinorPreMajor?: boolean;
+  prerelease?: boolean;
   logger?: Logger;
 }
 
@@ -38,6 +39,7 @@ interface DefaultVersioningStrategyOptions {
 export class DefaultVersioningStrategy implements VersioningStrategy {
   readonly bumpMinorPreMajor: boolean;
   readonly bumpPatchForMinorPreMajor: boolean;
+  readonly prerelease: boolean;
   protected logger: Logger;
   /**
    * Create a new DefaultVersioningStrategy
@@ -50,6 +52,7 @@ export class DefaultVersioningStrategy implements VersioningStrategy {
   constructor(options: DefaultVersioningStrategyOptions = {}) {
     this.bumpMinorPreMajor = options.bumpMinorPreMajor === true;
     this.bumpPatchForMinorPreMajor = options.bumpPatchForMinorPreMajor === true;
+    this.prerelease = options.prerelease === true;
     this.logger = options.logger ?? defaultLogger;
   }
 
