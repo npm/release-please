@@ -73,6 +73,7 @@ export interface BaseStrategyOptions {
   includeVInTag?: boolean;
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
+  groupPullRequestTitlePattern?: string;
   extraFiles?: ExtraFile[];
   versionFile?: string;
   snapshotLabels?: string[]; // Java-only
@@ -102,6 +103,7 @@ export abstract class BaseStrategy implements Strategy {
   protected includeVInTag: boolean;
   readonly pullRequestTitlePattern?: string;
   readonly pullRequestHeader?: string;
+  readonly groupPullRequestTitlePattern?: string;
   readonly extraFiles: ExtraFile[];
 
   readonly changelogNotes: ChangelogNotes;
@@ -133,6 +135,7 @@ export abstract class BaseStrategy implements Strategy {
     this.includeVInTag = options.includeVInTag ?? true;
     this.pullRequestTitlePattern = options.pullRequestTitlePattern;
     this.pullRequestHeader = options.pullRequestHeader;
+    this.groupPullRequestTitlePattern = options.groupPullRequestTitlePattern;
     this.extraFiles = options.extraFiles || [];
   }
 
@@ -468,7 +471,7 @@ export abstract class BaseStrategy implements Strategy {
       ) ||
       PullRequestTitle.parse(
         mergedPullRequest.title,
-        MANIFEST_PULL_REQUEST_TITLE_PATTERN,
+        this.groupPullRequestTitlePattern,
         this.logger
       );
     if (!pullRequestTitle) {
@@ -531,7 +534,7 @@ export abstract class BaseStrategy implements Strategy {
     if (notes === undefined) {
       this.logger.warn('Failed to find release notes');
     }
-    const version = pullRequestTitle.getVersion() || releaseData?.version;
+    const version = releaseData?.version || pullRequestTitle.getVersion();
     if (!version) {
       this.logger.error('Pull request should have included version');
       return;

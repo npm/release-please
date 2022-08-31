@@ -410,6 +410,8 @@ export class Manifest {
     repositoryConfig[path] = config;
     const strategy = await buildStrategy({
       github,
+      groupPullRequestTitlePattern:
+        manifestOptions?.groupPullRequestTitlePattern,
       ...config,
     });
     const component = await strategy.getBranchComponent();
@@ -1148,6 +1150,7 @@ export class Manifest {
           github: this.github,
           path,
           targetBranch: this.targetBranch,
+          groupPullRequestTitlePattern: this.groupPullRequestTitlePattern,
         });
         this._strategiesByPath[path] = strategy;
       }

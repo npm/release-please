@@ -59,6 +59,7 @@ export interface StrategyFactoryOptions extends ReleaserConfig {
   github: GitHub;
   path?: string;
   targetBranch?: string;
+  groupPullRequestTitlePattern?: string;
 }
 
 const releasers: Record<string, ReleaseBuilder> = {
@@ -122,6 +123,7 @@ export async function buildStrategy(
   const strategyOptions: BaseStrategyOptions = {
     skipGitHubRelease: options.skipGithubRelease, // Note the case difference in GitHub
     ...options,
+    groupPullRequestTitlePattern: options.groupPullRequestTitlePattern,
     targetBranch,
     versioningStrategy,
     changelogNotes,
